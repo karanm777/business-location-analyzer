@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply text-ink-700 font-sans;
+  background-color: #F7F5F0;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNDAiIGhlaWdodD0iMjQwIiB2aWV3Qm94PSIwIDAgMjQwIDI0MCI+CiAgPHJlY3Qgd2lkdGg9IjI0MCIgaGVpZ2h0PSIyNDAiIGZpbGw9IiNGN0Y1RjAiLz4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxMjQwM0IiIHN0cm9rZS1vcGFjaXR5PSIwLjA3IiBzdHJva2Utd2lkdGg9IjEuNCI+CiAgICA8cGF0aCBkPSJNLTIwLDQwIEM0MCwxMCA4MCw3MCAxNDAsNDAgQzIwMCwxMCAyNDAsNTAgMjgwLDMwIi8+CiAgICA8cGF0aCBkPSJNLTIwLDcwIEM0MCw0MCA4MCwxMDAgMTQwLDcwIEMyMDAsNDAgMjQwLDgwIDI4MCw2MCIvPgogICAgPHBhdGggZD0iTS0yMCwxMDAgQzQwLDcwIDgwLDEzMCAxNDAsMTAwIEMyMDAsNzAgMjQwLDExMCAyODAsOTAiLz4KICAgIDxwYXRoIGQ9Ik0tMjAsMTYwIEM0MCwxOTAgODAsMTQwIDE0MCwxNzAgQzIwMCwyMDAgMjQwLDE1MCAyODAsMTgwIi8+CiAgICA8cGF0aCBkPSJNLTIwLDE5MCBDNDAsMjIwIDgwLDE3MCAxNDAsMjAwIEMyMDAsMjMwIDI0MCwxODAgMjgwLDIxMCIvPgogIDwvZz4KICA8ZyBmaWxsPSIjRTA5NzNEIiBmaWxsLW9wYWNpdHk9IjAuMzUiPgogICAgPGNpcmNsZSBjeD0iNjAiIGN5PSI1NSIgcj0iMi4yIi8+CiAgICA8Y2lyY2xlIGN4PSIxODUiIGN5PSIxNzUiIHI9IjIuMiIvPgogIDwvZz4KPC9zdmc+Cg==");
+  background-repeat: repeat;
+  background-size: 240px 240px;
+}
+
+.font-display {
+  font-family: "Fraunces", serif;
+  font-feature-settings: "ss01";
+}
