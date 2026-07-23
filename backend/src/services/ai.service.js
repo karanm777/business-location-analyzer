@@ -126,7 +126,7 @@ export const generateChatReply = async (message, history, context) => {
   const prompt = buildChatPrompt(message, history, context);
 
   const response = await getAiClient().models.generateContent({
-    model: "gemini-flash-lite-latest",
+      model: "gemini-flash-lite-latest",
     contents: prompt
   });
 
