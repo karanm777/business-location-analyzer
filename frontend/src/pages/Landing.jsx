@@ -2,79 +2,58 @@ import React from "react";
 import { Link } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout.jsx";
 import Card from "../components/Card.jsx";
-import SuitabilityDial from "../components/SuitabilityDial.jsx";
 import useAuth from "../hooks/useAuth.js";
-
-const steps = [
-  {
-    label: "Pincode + business type",
-    detail: "Tell it where you're looking and what you want to open."
-  },
-  {
-    label: "AI reads the area",
-    detail: "It weighs footfall, competition, connectivity, and access."
-  },
-  {
-    label: "A clear verdict",
-    detail: "Score, recommendation, pros, cons, in plain language."
-  }
-];
 
 const Landing = () => {
   const { user } = useAuth();
 
   return (
     <MainLayout>
-      <section className="grid lg:grid-cols-2 gap-10 items-center py-8">
-        <div>
-          <p className="text-sm uppercase tracking-widest text-brand-600 font-medium mb-4">
-            Location intelligence for small business
-          </p>
-          <h1 className="font-display text-4xl sm:text-5xl font-semibold text-ink leading-tight">
-            Know if a location fits your business, before you sign the lease.
-          </h1>
-          <p className="text-muted mt-5 text-base leading-relaxed max-w-md">
-            Enter a pincode and a business type. The analyzer reads the area
-            like a scout would, then hands you a straight answer: score,
-            recommendation, pros, and cons.
-          </p>
-          <div className="mt-8">
-            <Link
-              to={user ? "/dashboard" : "/register"}
-              className="inline-block px-6 py-3 rounded-full bg-brand-500 text-white font-medium hover:bg-brand-600 transition-colors"
-            >
-              {user ? "Go to dashboard" : "Analyze your first location"}
-            </Link>
-          </div>
+      <section className="text-center py-14 sm:py-20 relative">
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-amber-600 mb-4">
+          Pincode + business type → suitability report
+        </p>
+        <h1 className="font-display text-4xl sm:text-5xl font-semibold text-ink-600 leading-[1.1] max-w-2xl mx-auto">
+          Know if the location fits <span className="italic text-ink-400">before</span> you sign the lease
+        </h1>
+        <p className="text-ink-700/70 mt-5 max-w-lg mx-auto leading-relaxed">
+          Enter a pincode and a business type. Our AI reads the area like a
+          surveyor and hands back a score, a clear recommendation, and the
+          pros and cons behind it.
+        </p>
+        <div className="mt-8">
+          <Link
+            to={user ? "/dashboard" : "/register"}
+            className="inline-block px-6 py-3 rounded-lg bg-ink-500 text-paper font-medium hover:bg-ink-600 transition-colors"
+          >
+            {user ? "Go to Dashboard" : "Get started free"}
+          </Link>
         </div>
+      </section>
 
-        <Card className="flex flex-col items-center">
-          <p className="text-xs uppercase tracking-wide text-muted mb-2 self-start">
-            Example &middot; Coffee Shop &middot; 641004
-          </p>
-          <SuitabilityDial score={82} />
-          <p className="text-sm text-ink/80 mt-3 text-center max-w-xs">
-            High residential density and few competitors nearby &mdash;{" "}
-            <span className="text-brand-600 font-medium">Suitable</span>.
+      <div className="grid sm:grid-cols-3 gap-4 mt-4">
+        <Card>
+          <p className="font-mono text-xs text-amber-600 mb-2">01 · Enter</p>
+          <h3 className="font-display font-semibold text-ink-600">Pincode + business</h3>
+          <p className="text-sm text-ink-700/70 mt-1.5">
+            Two fields, nothing else to fill in.
           </p>
         </Card>
-      </section>
-
-      <section className="mt-6 mb-4">
-        <div className="grid sm:grid-cols-3 gap-4">
-          {steps.map((step, index) => (
-            <div key={step.label} className="relative">
-              <Card className="h-full">
-                <p className="font-mono text-xs text-brand-600 mb-2">
-                  {String(index + 1).padStart(2, "0")}
-                </p>
-                <h3 className="font-display font-medium text-ink text-lg">{step.label}</h3>
-                <p className="text-sm text-muted mt-1.5">{step.detail}</p>
-              </Card>
-            </div>
-          ))}
-        </div>
-      </section>
+        <Card>
+          <p className="font-mono text-xs text-amber-600 mb-2">02 · Analyze</p>
+          <h3 className="font-display font-semibold text-ink-600">AI reads the area</h3>
+          <p className="text-sm text-ink-700/70 mt-1.5">
+            Density, competition, connectivity, weighed together.
+          </p>
+        </Card>
+        <Card>
+          <p className="font-mono text-xs text-amber-600 mb-2">03 · Decide</p>
+          <h3 className="font-display font-semibold text-ink-600">A clear verdict</h3>
+          <p className="text-sm text-ink-700/70 mt-1.5">
+            Score, recommendation, pros, cons, and why.
+          </p>
+        </Card>
+      </div>
     </MainLayout>
   );
 };

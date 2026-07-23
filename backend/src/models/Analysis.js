@@ -36,6 +36,15 @@ const analysisSchema = new mongoose.Schema(
     summary: {
       type: String,
       required: true
+    },
+    costEstimate: {
+      monthlyRent: { type: String, default: "Not available" },
+      setupCost: { type: String, default: "Not available" },
+      note: { type: String, default: "" }
+    },
+    requirements: {
+      type: [String],
+      default: []
     }
   },
   { timestamps: true }

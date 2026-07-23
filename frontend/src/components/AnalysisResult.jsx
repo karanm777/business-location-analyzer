@@ -1,76 +1,98 @@
 import React from "react";
 import Card from "./Card.jsx";
-import SuitabilityDial from "./SuitabilityDial.jsx";
+import ScoreGauge from "./ScoreGauge.jsx";
+import DownloadReportButton from "./DownloadReportButton.jsx";
 
 const recommendationStyle = (recommendation) => {
   if (recommendation === "Highly Suitable" || recommendation === "Suitable") {
-    return "text-sage-500 bg-sage-50";
+    return "text-ink-500 bg-ink-50 border-ink-100";
   }
   if (recommendation === "Moderately Suitable") {
-    return "text-amber-600 bg-amber-50";
+    return "text-amber-600 bg-amber-50 border-amber-400/20";
   }
-  return "text-brick-500 bg-red-50";
+  return "text-brick-500 bg-brick-400/10 border-brick-400/20";
 };
-
-const PlusIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mt-0.5 shrink-0">
-    <circle cx="8" cy="8" r="7" stroke="#1F8A5C" strokeWidth="1.4" />
-    <path d="M8 5v6M5 8h6" stroke="#1F8A5C" strokeWidth="1.4" strokeLinecap="round" />
-  </svg>
-);
-
-const MinusIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mt-0.5 shrink-0">
-    <circle cx="8" cy="8" r="7" stroke="#B24C3A" strokeWidth="1.4" />
-    <path d="M5 8h6" stroke="#B24C3A" strokeWidth="1.4" strokeLinecap="round" />
-  </svg>
-);
 
 const AnalysisResult = ({ analysis }) => {
   if (!analysis) return null;
 
-  const { score, recommendation, pros, cons, summary } = analysis;
+  const { score, recommendation, pros, cons, summary, costEstimate } = analysis;
 
   return (
     <Card className="mt-6">
-      <div className="grid sm:grid-cols-[auto,1fr] gap-8 items-center">
-        <SuitabilityDial score={score} size={200} />
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-5 flex-wrap">
+          <ScoreGauge score={score} />
+          <div className="flex-1 min-w-[160px]">
+            <p className="text-xs uppercase tracking-wider text-ink-400 mb-1.5">
+              Field report
+            </p>
+            <span
+              className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${recommendationStyle(
+                recommendation
+              )}`}
+            >
+              {recommendation}
+            </span>
+          </div>
+        </div>
+        <DownloadReportButton analysis={analysis} />
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-6 mt-7 pt-6 border-t border-ink-100">
         <div>
-          <span
-            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${recommendationStyle(
-              recommendation
-            )}`}
-          >
-            {recommendation}
-          </span>
-          <p className="text-sm text-ink-600 mt-3 leading-relaxed">{summary}</p>
+          <h3 className="font-display font-semibold text-ink-600 mb-2.5">Pros</h3>
+          <ul className="space-y-2 text-sm text-ink-700/90">
+            {pros.map((point, index) => (
+              <li key={index} className="flex gap-2.5">
+                <span className="text-sage-500 font-mono mt-0.5">+</span>
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-display font-semibold text-ink-600 mb-2.5">Cons</h3>
+          <ul className="space-y-2 text-sm text-ink-700/90">
+            {cons.map((point, index) => (
+              <li key={index} className="flex gap-2.5">
+                <span className="text-brick-400 font-mono mt-0.5">–</span>
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-6 mt-8 pt-6 border-t border-ink-100">
-        <div>
-          <h3 className="font-display font-medium text-ink-700 mb-3">What's working</h3>
-          <ul className="space-y-2.5 text-sm text-ink-600">
-            {pros.map((point, index) => (
-              <li key={index} className="flex gap-2">
-                <PlusIcon />
-                {point}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-display font-medium text-ink-700 mb-3">Worth weighing</h3>
-          <ul className="space-y-2.5 text-sm text-ink-600">
-            {cons.map((point, index) => (
-              <li key={index} className="flex gap-2">
-                <MinusIcon />
-                {point}
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="mt-6 pt-6 border-t border-ink-100">
+        <h3 className="font-display font-semibold text-ink-600 mb-2">Summary</h3>
+        <p className="text-sm text-ink-700/90 leading-relaxed">{summary}</p>
       </div>
+
+      {costEstimate && (
+        <div className="mt-6 pt-6 border-t border-ink-100">
+          <h3 className="font-display font-semibold text-ink-600 mb-3">
+            Estimated cost <span className="text-xs font-sans font-normal text-ink-400">(AI estimate, not a quote)</span>
+          </h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="bg-ink-50 rounded-lg px-4 py-3">
+              <p className="text-xs uppercase tracking-wider text-ink-400 mb-1">Monthly rent</p>
+              <p className="font-mono text-sm font-semibold text-ink-600">
+                {costEstimate.monthlyRent}
+              </p>
+            </div>
+            <div className="bg-ink-50 rounded-lg px-4 py-3">
+              <p className="text-xs uppercase tracking-wider text-ink-400 mb-1">Setup cost</p>
+              <p className="font-mono text-sm font-semibold text-ink-600">
+                {costEstimate.setupCost}
+              </p>
+            </div>
+          </div>
+          {costEstimate.note && (
+            <p className="text-xs text-ink-700/60 mt-3 leading-relaxed">{costEstimate.note}</p>
+          )}
+        </div>
+      )}
     </Card>
   );
 };

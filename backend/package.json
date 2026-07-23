@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Business Location Analyzer API",
+  "description": "Market Gap Finder API",
   "type": "module",
   "main": "src/server.js",
   "scripts": {

@@ -22,7 +22,9 @@ export const analyzeLocation = async (req, res, next) => {
       recommendation: result.recommendation,
       pros: result.pros,
       cons: result.cons,
-      summary: result.summary
+      summary: result.summary,
+      costEstimate: result.costEstimate,
+      requirements: result.requirements
     });
 
     return success(res, 201, "Analysis generated successfully", { analysis });
