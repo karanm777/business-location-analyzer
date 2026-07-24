@@ -61,7 +61,7 @@ export const generateLocationAnalysis = async (pincode, business) => {
   const prompt = buildPrompt(pincode, business);
 
   const response = await getAiClient().models.generateContent({
-    model: "gemini-flash-latest",
+    model: "gemini-flash-lite-latest",
     contents: prompt
   });
 
@@ -126,7 +126,7 @@ export const generateChatReply = async (message, history, context) => {
   const prompt = buildChatPrompt(message, history, context);
 
   const response = await getAiClient().models.generateContent({
-    model: "gemini-2.5-flash-lite",
+    model: "gemini-flash-lite-latest",
     contents: prompt
   });
 
