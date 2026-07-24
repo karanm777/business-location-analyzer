@@ -1,24 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout.jsx";
 import Card from "../components/Card.jsx";
 import AnalysisResult from "../components/AnalysisResult.jsx";
 import LocationMap from "../components/LocationMap.jsx";
 import RequirementsList from "../components/RequirementsList.jsx";
 import BUSINESS_CATEGORIES from "../utils/businessCategories.js";
+import { DISTRICTS, getPincodesForDistrict } from "../utils/districtPincodeData.js";
 import useAnalysisContext from "../hooks/useAnalysisContext.js";
 import { analyzeLocation } from "../services/analysis.service.js";
 
+const STORAGE_KEY = "mgf:dashboardState";
+
+const loadSavedState = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    return null;
+  }
+};
+
 const Dashboard = () => {
-  const [pincode, setPincode] = useState("");
-  const [category, setCategory] = useState(BUSINESS_CATEGORIES[0]);
-  const [customBusiness, setCustomBusiness] = useState("");
-  const [result, setResult] = useState(null);
+  const saved = loadSavedState();
+
+  const [district, setDistrict] = useState(saved?.district || "");
+  const [pincode, setPincode] = useState(saved?.pincode || "");
+  const [category, setCategory] = useState(saved?.category || BUSINESS_CATEGORIES[0]);
+  const [customBusiness, setCustomBusiness] = useState(saved?.customBusiness || "");
+  const [result, setResult] = useState(saved?.result || null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { setLastAnalysis } = useAnalysisContext();
 
   const isOther = category === "Other";
   const businessValue = isOther ? customBusiness.trim() : category;
+  const pincodeOptions = district ? getPincodesForDistrict(district) : [];
+
+  useEffect(() => {
+    if (saved?.result) {
+      setLastAnalysis(saved.result);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ district, pincode, category, customBusiness, result })
+    );
+  }, [district, pincode, category, customBusiness, result]);
+
+  const handleDistrictChange = (e) => {
+    const value = e.target.value;
+    setDistrict(value);
+    setPincode("");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,7 +83,8 @@ const Dashboard = () => {
             Analyze a location
           </h1>
           <p className="text-sm text-ink-700/70 mb-5">
-            Enter a pincode and business type to get an AI-generated suitability report.
+            Pick a district, then a pincode, then a business type to get an AI-generated
+            suitability report.
           </p>
 
           {error && (
@@ -57,20 +94,59 @@ const Dashboard = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                name="pincode"
-                placeholder="Pincode (e.g. 641004)"
-                value={pincode}
-                onChange={(e) => setPincode(e.target.value)}
-                required
-                className="flex-1 rounded-lg border border-ink-100 px-3 py-2.5 text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition"
-              />
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-ink-400 uppercase tracking-wider">
+                  District
+                </label>
+                <select
+                  value={district}
+                  onChange={handleDistrictChange}
+                  required
+                  className="w-full mt-1 rounded-lg border border-ink-100 px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition"
+                >
+                  <option value="" disabled>
+                    Select a district
+                  </option>
+                  {DISTRICTS.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs text-ink-400 uppercase tracking-wider">
+                  Pincode / Area
+                </label>
+                <select
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value)}
+                  required
+                  disabled={!district}
+                  className="w-full mt-1 rounded-lg border border-ink-100 px-3 py-2.5 text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition disabled:bg-ink-50 disabled:text-ink-400"
+                >
+                  <option value="" disabled>
+                    {district ? "Select a pincode" : "Select district first"}
+                  </option>
+                  {pincodeOptions.map((item) => (
+                    <option key={item.pincode} value={item.pincode}>
+                      {item.pincode} — {item.area}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-ink-400 uppercase tracking-wider">
+                Business type
+              </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="flex-1 rounded-lg border border-ink-100 px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition"
+                className="w-full mt-1 rounded-lg border border-ink-100 px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition"
               >
                 {BUSINESS_CATEGORIES.map((item) => (
                   <option key={item} value={item}>
@@ -93,7 +169,7 @@ const Dashboard = () => {
 
             <button
               type="submit"
-              disabled={loading || (isOther && !customBusiness.trim())}
+              disabled={loading || !pincode || (isOther && !customBusiness.trim())}
               className="w-full py-2.5 rounded-lg bg-ink-500 text-paper font-medium hover:bg-ink-600 disabled:opacity-60 transition-colors"
             >
               {loading ? "Analyzing..." : "Analyze"}
