@@ -12,3 +12,18 @@ export const analyzeValidation = [
     .isLength({ max: 100 })
     .withMessage("Business type is too long")
 ];
+
+export const suggestionsValidation = [
+  body("business")
+    .trim()
+    .notEmpty()
+    .withMessage("Business type is required")
+    .isLength({ max: 100 })
+    .withMessage("Business type is too long"),
+  body("excludeDistrict").optional().trim().isLength({ max: 100 }),
+  body("districts")
+    .isArray({ min: 1 })
+    .withMessage("Districts catalogue is required"),
+  body("districts.*.district").notEmpty().withMessage("Each district needs a name"),
+  body("districts.*.areas").isArray({ min: 1 }).withMessage("Each district needs areas")
+];

@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import Analysis from "../models/Analysis.js";
-import { generateLocationAnalysis } from "../services/ai.service.js";
+import { generateLocationAnalysis, generateAreaSuggestions } from "../services/ai.service.js";
 import { success, failure } from "../utils/response.js";
 
 export const analyzeLocation = async (req, res, next) => {
@@ -28,6 +28,23 @@ export const analyzeLocation = async (req, res, next) => {
     });
 
     return success(res, 201, "Analysis generated successfully", { analysis });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAreaSuggestions = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return failure(res, 400, "Validation failed", errors.array());
+    }
+
+    const { business, excludeDistrict, districts } = req.body;
+
+    const suggestions = await generateAreaSuggestions(business, excludeDistrict, districts);
+
+    return success(res, 200, "Suggestions generated successfully", { suggestions });
   } catch (error) {
     next(error);
   }

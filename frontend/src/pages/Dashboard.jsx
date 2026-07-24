@@ -4,10 +4,11 @@ import Card from "../components/Card.jsx";
 import AnalysisResult from "../components/AnalysisResult.jsx";
 import LocationMap from "../components/LocationMap.jsx";
 import RequirementsList from "../components/RequirementsList.jsx";
+import SuggestionsPanel from "../components/SuggestionsPanel.jsx";
 import BUSINESS_CATEGORIES from "../utils/businessCategories.js";
-import { DISTRICTS, getPincodesForDistrict } from "../utils/districtPincodeData.js";
+import DISTRICT_PINCODE_DATA, { DISTRICTS, getPincodesForDistrict } from "../utils/districtPincodeData.js";
 import useAnalysisContext from "../hooks/useAnalysisContext.js";
-import { analyzeLocation } from "../services/analysis.service.js";
+import { analyzeLocation, getAreaSuggestions } from "../services/analysis.service.js";
 
 const STORAGE_KEY = "mgf:dashboardState";
 
@@ -30,6 +31,9 @@ const Dashboard = () => {
   const [result, setResult] = useState(saved?.result || null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState("");
   const { setLastAnalysis } = useAnalysisContext();
 
   const isOther = category === "Other";
@@ -39,6 +43,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (saved?.result) {
       setLastAnalysis(saved.result);
+      fetchSuggestions(saved.result.business, saved.district);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -56,20 +61,55 @@ const Dashboard = () => {
     setPincode("");
   };
 
+  const fetchSuggestions = async (business, currentDistrict) => {
+    setSuggestions([]);
+    setSuggestionsError("");
+    setSuggestionsLoading(true);
+    try {
+      const districts = Object.entries(DISTRICT_PINCODE_DATA)
+        .filter(([name]) => name !== currentDistrict)
+        .map(([name, areas]) => ({ district: name, areas }));
+
+      const res = await getAreaSuggestions({
+        business,
+        excludeDistrict: currentDistrict,
+        districts
+      });
+      setSuggestions(res.data.suggestions);
+    } catch (err) {
+      setSuggestionsError(
+        err.response?.data?.message || "Couldn't load suggestions right now."
+      );
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setResult(null);
+    setSuggestions([]);
+    setSuggestionsError("");
     setLoading(true);
     try {
       const res = await analyzeLocation({ pincode, business: businessValue });
       setResult(res.data.analysis);
       setLastAnalysis(res.data.analysis);
+      fetchSuggestions(businessValue, district);
     } catch (err) {
       setError(err.response?.data?.message || "Analysis failed. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSuggestionSelect = (item) => {
+    setDistrict(item.district);
+    setPincode(item.pincode);
+    setResult(null);
+    setSuggestions([]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -182,6 +222,13 @@ const Dashboard = () => {
             <AnalysisResult analysis={result} />
             <LocationMap pincode={result.pincode} business={result.business} />
             <RequirementsList requirements={result.requirements} pincode={result.pincode} />
+            <SuggestionsPanel
+              suggestions={suggestions}
+              loading={suggestionsLoading}
+              error={suggestionsError}
+              business={result.business}
+              onSelect={handleSuggestionSelect}
+            />
           </>
         )}
       </div>

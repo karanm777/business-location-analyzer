@@ -93,6 +93,93 @@ export const generateLocationAnalysis = async (pincode, business) => {
   };
 };
 
+const buildSuggestionsPrompt = (business, excludeDistrict, districts) => {
+  const catalogue = districts
+    .map(
+      (d) =>
+        `${d.district}: ${d.areas
+          .map((a) => `${a.area} (${a.pincode})`)
+          .join(", ")}`
+    )
+    .join("\n");
+
+  return `
+You are a location intelligence assistant helping pick the best areas to
+open a business, across Tamil Nadu districts.
+
+Business type: "${business}"
+${excludeDistrict ? `The user already analyzed a location in "${excludeDistrict}", so do NOT suggest that district.` : ""}
+
+Below is a catalogue of districts and known areas/pincodes. You MUST only
+pick district + area + pincode combinations that appear EXACTLY in this
+catalogue (same spelling, same pincode) — do not invent new areas or
+pincodes.
+
+Catalogue:
+${catalogue}
+
+Pick the 4 best district + area combinations for this business type, based
+on typical commercial activity, population density, and connectivity you'd
+expect for that kind of area name (e.g. "Town", "Fort", "Nagar", "Junction",
+industrial or IT-hub sounding names suit different businesses than quiet
+residential names). Favor variety — do not repeat the same district twice.
+
+Respond with ONLY valid JSON, no markdown, no code fences, no extra text.
+Use exactly this structure:
+
+[
+  {
+    "district": "<must match catalogue exactly>",
+    "area": "<must match catalogue exactly>",
+    "pincode": "<must match catalogue exactly>",
+    "score": <integer 0-100>,
+    "reason": "<one short sentence, specific to this business type and area>"
+  }
+]
+`;
+};
+
+export const generateAreaSuggestions = async (business, excludeDistrict, districts) => {
+  const prompt = buildSuggestionsPrompt(business, excludeDistrict, districts);
+
+  const response = await getAiClient().models.generateContent({
+    model: "gemini-flash-lite-latest",
+    contents: prompt
+  });
+
+  const rawText = response.text;
+
+  if (!rawText) {
+    throw new Error("AI service returned an empty response");
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(cleanJsonText(rawText));
+  } catch (error) {
+    throw new Error("Failed to parse AI response as JSON");
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error("AI response was not a list of suggestions");
+  }
+
+  const validPincodes = new Set(
+    districts.flatMap((d) => d.areas.map((a) => a.pincode))
+  );
+
+  return parsed
+    .filter((item) => item && validPincodes.has(item.pincode))
+    .slice(0, 4)
+    .map((item) => ({
+      district: item.district,
+      area: item.area,
+      pincode: item.pincode,
+      score: Number(item.score) || 0,
+      reason: item.reason || ""
+    }));
+};
+
 const buildChatPrompt = (message, history, context) => {
   const historyText = (history || [])
     .slice(-6)

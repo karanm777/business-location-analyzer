@@ -5,6 +5,11 @@ export const analyzeLocation = async (payload) => {
   return data;
 };
 
+export const getAreaSuggestions = async (payload) => {
+  const { data } = await api.post("/suggestions", payload);
+  return data;
+};
+
 export const fetchHistory = async (search = "") => {
   const { data } = await api.get("/history", { params: { search } });
   return data;
