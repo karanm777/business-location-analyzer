@@ -20,7 +20,8 @@ export const suggestionsValidation = [
     .withMessage("Business type is required")
     .isLength({ max: 100 })
     .withMessage("Business type is too long"),
-  body("excludeDistrict").optional().trim().isLength({ max: 100 }),
+  body("currentDistrict").optional().trim().isLength({ max: 100 }),
+  body("excludePincode").optional().trim().isLength({ max: 20 }),
   body("districts")
     .isArray({ min: 1 })
     .withMessage("Districts catalogue is required"),

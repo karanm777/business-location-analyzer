@@ -43,7 +43,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (saved?.result) {
       setLastAnalysis(saved.result);
-      fetchSuggestions(saved.result.business, saved.district);
+      fetchSuggestions(saved.result.business, saved.district, saved.pincode);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -61,18 +61,20 @@ const Dashboard = () => {
     setPincode("");
   };
 
-  const fetchSuggestions = async (business, currentDistrict) => {
+  const fetchSuggestions = async (business, currentDistrict, currentPincode) => {
     setSuggestions([]);
     setSuggestionsError("");
     setSuggestionsLoading(true);
     try {
-      const districts = Object.entries(DISTRICT_PINCODE_DATA)
-        .filter(([name]) => name !== currentDistrict)
-        .map(([name, areas]) => ({ district: name, areas }));
+      const districts = Object.entries(DISTRICT_PINCODE_DATA).map(([name, areas]) => ({
+        district: name,
+        areas
+      }));
 
       const res = await getAreaSuggestions({
         business,
-        excludeDistrict: currentDistrict,
+        currentDistrict,
+        excludePincode: currentPincode,
         districts
       });
       setSuggestions(res.data.suggestions);
@@ -96,7 +98,7 @@ const Dashboard = () => {
       const res = await analyzeLocation({ pincode, business: businessValue });
       setResult(res.data.analysis);
       setLastAnalysis(res.data.analysis);
-      fetchSuggestions(businessValue, district);
+      fetchSuggestions(businessValue, district, pincode);
     } catch (err) {
       setError(err.response?.data?.message || "Analysis failed. Please try again.");
     } finally {

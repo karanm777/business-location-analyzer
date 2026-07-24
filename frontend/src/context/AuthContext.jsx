@@ -18,6 +18,9 @@ export const AuthProvider = ({ children }) => {
       .then((res) => setUser(res.data.user))
       .catch(() => {
         localStorage.removeItem("token");
+        localStorage.removeItem("mgf:dashboardState");
+        localStorage.removeItem("mgf:lastAnalysis");
+        localStorage.removeItem("mgf:lastForm");
         setUser(null);
       })
       .finally(() => setLoading(false));
@@ -30,6 +33,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("mgf:dashboardState");
+    localStorage.removeItem("mgf:lastAnalysis");
+    localStorage.removeItem("mgf:lastForm");
     setUser(null);
   };
 

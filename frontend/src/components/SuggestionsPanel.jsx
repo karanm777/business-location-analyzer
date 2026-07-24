@@ -16,11 +16,11 @@ const SuggestionsPanel = ({ suggestions, loading, error, business, onSelect }) =
         Elsewhere in Tamil Nadu
       </p>
       <h3 className="font-display text-lg font-semibold text-ink-600 mb-1.5">
-        Peak areas for {business || "this business"} in other districts
+        Other peak areas for {business || "this business"}
       </h3>
       <p className="text-sm text-ink-700/70 mb-5">
-        AI-suggested spots outside your selected district that tend to suit this
-        business type well.
+        AI-suggested spots that tend to suit this business type well — starting
+        with your own district, then nearby options.
       </p>
 
       {loading && (
@@ -62,6 +62,11 @@ const SuggestionsPanel = ({ suggestions, loading, error, business, onSelect }) =
                   {item.score}
                 </span>
               </div>
+              {item.sameDistrict && (
+                <span className="inline-block text-[10px] uppercase tracking-wider font-medium text-sage-500 bg-sage-400/10 border border-sage-400/20 rounded-full px-2 py-0.5 mb-1.5">
+                  Your district
+                </span>
+              )}
               <p className="text-sm text-ink-700/80 leading-relaxed">{item.reason}</p>
               <span className="inline-block mt-2 text-xs font-medium text-amber-600 opacity-0 group-hover:opacity-100 transition">
                 Analyze this spot →

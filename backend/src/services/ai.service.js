@@ -93,7 +93,7 @@ export const generateLocationAnalysis = async (pincode, business) => {
   };
 };
 
-const buildSuggestionsPrompt = (business, excludeDistrict, districts) => {
+const buildSuggestionsPrompt = (business, currentDistrict, excludePincode, districts) => {
   const catalogue = districts
     .map(
       (d) =>
@@ -108,7 +108,7 @@ You are a location intelligence assistant helping pick the best areas to
 open a business, across Tamil Nadu districts.
 
 Business type: "${business}"
-${excludeDistrict ? `The user already analyzed a location in "${excludeDistrict}", so do NOT suggest that district.` : ""}
+${currentDistrict ? `The user already analyzed pincode "${excludePincode}" in "${currentDistrict}". Do not suggest that exact pincode again.` : ""}
 
 Below is a catalogue of districts and known areas/pincodes. You MUST only
 pick district + area + pincode combinations that appear EXACTLY in this
@@ -122,16 +122,26 @@ Pick the 4 best district + area combinations for this business type, based
 on typical commercial activity, population density, and connectivity you'd
 expect for that kind of area name (e.g. "Town", "Fort", "Nagar", "Junction",
 industrial or IT-hub sounding names suit different businesses than quiet
-residential names). Favor variety — do not repeat the same district twice.
+residential names).
+
+IMPORTANT PRIORITY ORDER:
+1. First, check "${currentDistrict}" itself — if there is a genuinely
+   stronger area there for this business type (other than the pincode
+   already analyzed), include 1 such pick FIRST in the list.
+2. Fill the remaining picks with the best areas from OTHER districts,
+   favoring variety — do not repeat the same other-district twice.
+3. If "${currentDistrict}" has nothing better to offer, all 4 picks can be
+   from other districts.
 
 Respond with ONLY valid JSON, no markdown, no code fences, no extra text.
-Use exactly this structure:
+Use exactly this structure, in priority order (best/most relevant first):
 
 [
   {
     "district": "<must match catalogue exactly>",
     "area": "<must match catalogue exactly>",
     "pincode": "<must match catalogue exactly>",
+    "sameDistrict": <true if district equals "${currentDistrict}", else false>,
     "score": <integer 0-100>,
     "reason": "<one short sentence, specific to this business type and area>"
   }
@@ -139,8 +149,8 @@ Use exactly this structure:
 `;
 };
 
-export const generateAreaSuggestions = async (business, excludeDistrict, districts) => {
-  const prompt = buildSuggestionsPrompt(business, excludeDistrict, districts);
+export const generateAreaSuggestions = async (business, currentDistrict, excludePincode, districts) => {
+  const prompt = buildSuggestionsPrompt(business, currentDistrict, excludePincode, districts);
 
   const response = await getAiClient().models.generateContent({
     model: "gemini-flash-lite-latest",
@@ -168,16 +178,27 @@ export const generateAreaSuggestions = async (business, excludeDistrict, distric
     districts.flatMap((d) => d.areas.map((a) => a.pincode))
   );
 
-  return parsed
-    .filter((item) => item && validPincodes.has(item.pincode))
-    .slice(0, 4)
+  const cleaned = parsed
+    .filter(
+      (item) =>
+        item &&
+        validPincodes.has(item.pincode) &&
+        item.pincode !== excludePincode
+    )
     .map((item) => ({
       district: item.district,
       area: item.area,
       pincode: item.pincode,
+      sameDistrict: item.district === currentDistrict,
       score: Number(item.score) || 0,
       reason: item.reason || ""
     }));
+
+  // Guarantee same-district picks (if any) surface first, regardless of
+  // what order the model returned them in.
+  cleaned.sort((a, b) => (a.sameDistrict === b.sameDistrict ? 0 : a.sameDistrict ? -1 : 1));
+
+  return cleaned.slice(0, 4);
 };
 
 const buildChatPrompt = (message, history, context) => {

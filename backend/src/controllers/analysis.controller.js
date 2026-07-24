@@ -40,9 +40,14 @@ export const getAreaSuggestions = async (req, res, next) => {
       return failure(res, 400, "Validation failed", errors.array());
     }
 
-    const { business, excludeDistrict, districts } = req.body;
+    const { business, currentDistrict, excludePincode, districts } = req.body;
 
-    const suggestions = await generateAreaSuggestions(business, excludeDistrict, districts);
+    const suggestions = await generateAreaSuggestions(
+      business,
+      currentDistrict,
+      excludePincode,
+      districts
+    );
 
     return success(res, 200, "Suggestions generated successfully", { suggestions });
   } catch (error) {
